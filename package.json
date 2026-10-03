@@ -1,0 +1,64 @@
+{
+	"name": "n8n-nodes-business-box",
+	"version": "0.1.0",
+	"description": "n8n nodes for Business Box online booking: create, find and cancel bookings, check availability, send single-use booking links, and trigger workflows on booking events.",
+	"license": "MIT",
+	"homepage": "https://marubox.jp/developers/",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"business-box",
+		"booking",
+		"scheduling",
+		"appointments"
+	],
+	"author": {
+		"name": "App Dev Plus G.K.",
+		"email": "support@marubox.jp",
+		"url": "https://marubox.jp/"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/marubox/n8n-nodes-business-box.git"
+	},
+	"bugs": {
+		"url": "https://github.com/marubox/n8n-nodes-business-box/issues"
+	},
+	"engines": {
+		"node": ">=20.15"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease"
+	},
+	"files": [
+		"dist",
+		"!dist/tsconfig.tsbuildinfo"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/BusinessBoxApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/BusinessBox/BusinessBox.node.js",
+			"dist/nodes/BusinessBoxTrigger/BusinessBoxTrigger.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "^0.50.4",
+		"eslint": "9.32.0",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}

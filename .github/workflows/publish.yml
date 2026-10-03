@@ -1,0 +1,81 @@
+# Publishes n8n-nodes-business-box to npm when a version tag is pushed.
+#
+# n8n requires verified community nodes (from May 1 2026) to be published from
+# GitHub Actions with an npm provenance statement. This workflow does that with
+# npm trusted publishing (OIDC): no npm token is stored in the repository.
+#
+# One-time setup on npmjs.com (package settings → Trusted publishers → GitHub Actions):
+#   Organization or user: marubox
+#   Repository:           n8n-nodes-business-box
+#   Workflow filename:    publish.yml
+#   Environment:          (leave blank)
+#
+# The very first publish of a new package name cannot use a trusted publisher
+# (the package does not exist yet). Either publish 0.1.0 once with a short-lived
+# granular token saved as the NPM_TOKEN repository secret, then delete the
+# secret and add the trusted publisher; or create the package on npmjs first.
+#
+# To release: bump "version" in package.json, update CHANGELOG.md, commit, then
+#   git tag v0.1.0 && git push origin v0.1.0
+# (the tag must match package.json; a leading "v" is optional).
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - '[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required for npm trusted publishing and the provenance attestation.
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Check the tag matches package.json
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $VERSION" >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish with provenance
+        # RELEASE_MODE lets the scaffold's prepublishOnly guard (n8n-node prerelease) pass.
+        # NODE_AUTH_TOKEN is only used if the NPM_TOKEN secret exists (first publish);
+        # otherwise npm uses the OIDC trusted publisher.
+        run: npm publish --provenance --access public
+        env:
+          RELEASE_MODE: 'true'
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
