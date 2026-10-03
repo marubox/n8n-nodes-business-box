@@ -63,7 +63,8 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: npm ci
+        # npm ci rejects the macOS-generated lockfile on Linux (platform-specific @emnapi optional deps).
+        run: npm install --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
